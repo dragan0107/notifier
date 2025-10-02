@@ -54,40 +54,24 @@ jobs:
           cd android
           ./gradlew assembleRelease --no-daemon -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: v${{ github.run_number }}
-          release_name: Android APK Release v${{ github.run_number }}
-          draft: false
-          prerelease: false
+          name: app-release-apk
+          path: android/app/build/outputs/apk/release/*.apk
 
-      - name: Upload Release Asset
-        id: upload_release_asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: android/app/build/outputs/apk/release/app-release.apk
-          asset_name: app-release.apk
-          asset_content_type: application/vnd.android.package-archive
-
-      - name: Generate QR Code for Direct APK Download
+      - name: Generate QR Code for APK Download
         run: |
-          # Get the direct download URL for the release asset
-          APK_DOWNLOAD_URL="${{ steps.upload_release_asset.outputs.browser_download_url }}"
+          # Get the artifact download URL
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
           
-          # Generate QR code using qrencode
+          # Generate QR code using qrencode with better formatting
           sudo apt-get update && sudo apt-get install -y qrencode
           
-          echo "📱 Direct APK Download QR Code:"
-          echo "Scan this QR code with your phone to instantly download the APK:"
+          echo "📱 APK Download QR Code:"
+          echo "Scan this QR code with your phone to download the APK:"
           echo ""
-          qrencode -t ansiutf8 "$APK_DOWNLOAD_URL"
+          qrencode -t ansiutf8 -m 0 "$ARTIFACT_URL"
           echo ""
-          echo "🔗 Direct download URL: $APK_DOWNLOAD_URL"
-          echo "📦 File: app-release.apk"
+          echo "🔗 Download URL: $ARTIFACT_URL"
+          echo "📦 Artifact name: app-release-apk"
