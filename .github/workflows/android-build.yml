@@ -1,6 +1,7 @@
 name: QR Code Test
 
 on:
+  push:
   workflow_dispatch:
 
 jobs:
