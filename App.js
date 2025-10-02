@@ -16,12 +16,15 @@ import Constants from 'expo-constants';
 
 // Configure how notifications are handled when the app is in the foreground
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
+  handleNotification: async (notification) => {
+    console.log('Notification received:', notification);
+    return {
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    };
+  },
 });
 
 export default function App() {
@@ -113,6 +116,20 @@ export default function App() {
           >
             <Text style={styles.buttonText}>Schedule Reminder (10s)</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.button, { backgroundColor: '#FF9500' }]} 
+            onPress={checkScheduledNotifications}
+          >
+            <Text style={styles.buttonText}>Check Scheduled Notifications</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.button, { backgroundColor: '#FF3B30' }]} 
+            onPress={clearAllScheduledNotifications}
+          >
+            <Text style={styles.buttonText}>Clear All Scheduled</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
@@ -163,25 +180,39 @@ async function sendPushNotification(expoPushToken) {
 }
 
 async function schedulePushNotification() {
-  await Notifications.scheduleNotificationAsync({
+  console.log('Scheduling notification for 5 seconds from now...');
+  
+  const triggerDate = new Date(Date.now() + 5000); // 5 seconds from now
+  console.log('Trigger date:', triggerDate);
+  
+  const notificationId = await Notifications.scheduleNotificationAsync({
     content: {
       title: "Scheduled Notification! 📅",
       body: 'This notification was scheduled 5 seconds ago',
       data: { data: 'goes here' },
     },
-    trigger: { seconds: 5 },
+    trigger: triggerDate,
   });
+  console.log('Notification scheduled with ID:', notificationId);
+  alert('Notification scheduled for 5 seconds from now!');
 }
 
 async function scheduleReminder() {
-  await Notifications.scheduleNotificationAsync({
+  console.log('Scheduling reminder for 10 seconds from now...');
+  
+  const triggerDate = new Date(Date.now() + 10000); // 10 seconds from now
+  console.log('Trigger date:', triggerDate);
+  
+  const notificationId = await Notifications.scheduleNotificationAsync({
     content: {
       title: "Reminder! ⏰",
       body: 'This is your scheduled reminder',
       data: { data: 'reminder data' },
     },
-    trigger: { seconds: 10 },
+    trigger: triggerDate,
   });
+  console.log('Reminder scheduled with ID:', notificationId);
+  alert('Reminder scheduled for 10 seconds from now!');
 }
 
 async function sendCustomNotification() {
@@ -192,8 +223,33 @@ async function sendCustomNotification() {
       data: { custom: true },
       sound: 'default',
     },
-    trigger: null, // Send immediately
+    trigger: { 
+      seconds: 1,
+      channelId: 'default'
+    },
   });
+}
+
+async function checkScheduledNotifications() {
+  try {
+    const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+    console.log('Scheduled notifications:', scheduledNotifications);
+    alert(`Found ${scheduledNotifications.length} scheduled notifications. Check console for details.`);
+  } catch (error) {
+    console.log('Error getting scheduled notifications:', error);
+    alert('Error getting scheduled notifications: ' + error.message);
+  }
+}
+
+async function clearAllScheduledNotifications() {
+  try {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    console.log('All scheduled notifications cleared');
+    alert('All scheduled notifications cleared!');
+  } catch (error) {
+    console.log('Error clearing scheduled notifications:', error);
+    alert('Error clearing scheduled notifications: ' + error.message);
+  }
 }
 
 async function registerForPushNotificationsAsync() {
