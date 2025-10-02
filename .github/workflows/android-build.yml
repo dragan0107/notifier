@@ -59,3 +59,19 @@ jobs:
         with:
           name: app-release-apk
           path: android/app/build/outputs/apk/release/*.apk
+
+      - name: Generate QR Code for APK Download
+        run: |
+          # Get the artifact download URL
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          
+          # Generate QR code using qrencode
+          sudo apt-get update && sudo apt-get install -y qrencode
+          
+          echo "📱 APK Download QR Code:"
+          echo "Scan this QR code with your phone to download the APK:"
+          echo ""
+          qrencode -t ansiutf8 "$ARTIFACT_URL"
+          echo ""
+          echo "🔗 Direct download URL: $ARTIFACT_URL"
+          echo "📦 Artifact name: app-release-apk"
